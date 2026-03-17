@@ -12,7 +12,8 @@ spec:
     spec:
       containers:
       - name: storefrontend
-        image: [YOUR DOCKER USER NAME]/storeimage:latest
+        image: rajgopalshrinivasan/storeimage:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 80
         env:

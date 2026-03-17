@@ -1,16 +1,81 @@
 version: '3.4'
 
-services: 
+services:
 
   frontend:
     image: store:latest
-    environment: 
+    environment:
       - ProductEndpoint=http://backend:8080
+      - ZIPKIN_URL=http://zipkin:9411
+      - APPLICATION_INSIGHTS_CONNECTION_STRING=InstrumentationKey=ff32a311-babd-429e-98d1-7e9c76d0fcb1;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=90801ff1-c98d-4a6d-8434-82c5878565e8
     ports:
       - "32000:8080"
     depends_on: 
       - backend
+      - prometheus
+      - zipkin
+
   backend:
     image: products:latest
-    ports: 
+    ports:
       - "32001:8080"
+    depends_on: 
+      - prometheus
+    environment: 
+      - ZIPKIN_URL=http://zipkin:9411
+      - APPLICATION_INSIGHTS_CONNECTION_STRING=InstrumentationKey=ff32a311-babd-429e-98d1-7e9c76d0fcb1;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=90801ff1-c98d-4a6d-8434-82c5878565e8
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    configs:
+      - source: grafana_datasource
+        target: /etc/grafana/provisioning/datasources/datasource.yml
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+
+configs:
+  prometheus_config:
+    content: |
+      global:
+        scrape_interval: 1s
+
+      scrape_configs:
+        - job_name: 'products'
+          static_configs:
+            - targets: ['backend:8080']
+        - job_name: 'store'
+          static_configs:
+            - targets: ['frontend:8080']
+  grafana_datasource:
+    content: |
+      apiVersion: 1
+
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus:9090
+        isDefault: true
+        access: proxy
+        editable: true

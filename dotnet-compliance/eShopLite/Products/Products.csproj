@@ -21,12 +21,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" Version="8.*" />
-    <PackageReference Include="Microsoft.Extensions.Telemetry" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" Version="10.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Telemetry" Version="10.4.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.*" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../dotnet-observability/eShopLite/Diagnostics/Diagnostics.csproj" />
     <ProjectReference Include="..\DataEntities\DataEntities.csproj" />
   </ItemGroup>
 
